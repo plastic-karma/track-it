@@ -80,7 +80,7 @@ struct DailyMetricsView: View {
                             
                             VStack(spacing: 30) {
                                 ForEach(activeCategories, id: \.name) { category in
-                                    MetricSlider(
+                                    MetricStepper(
                                         title: category.displayTitle,
                                         value: Binding(
                                             get: { categoryMetrics[category.name] ?? 0.0 },
@@ -167,7 +167,7 @@ struct DailyMetricsView: View {
                         
                         VStack(spacing: 30) {
                             ForEach(activeCategories, id: \.name) { category in
-                                MetricSlider(
+                                MetricStepper(
                                     title: category.displayTitle,
                                     value: Binding(
                                         get: { categoryMetrics[category.name] ?? 0.0 },
@@ -367,7 +367,7 @@ struct MetricDisplay: View {
     }
 }
 
-struct MetricSlider: View {
+struct MetricStepper: View {
     let title: String
     @Binding var value: Double
     
@@ -389,14 +389,45 @@ struct MetricSlider: View {
                 }
             }
             
-            Slider(value: $value, in: -2...2, step: 1) {
-                Text(title)
-            } minimumValueLabel: {
-                Text("")
-            } maximumValueLabel: {
-                Text("")
+            HStack {
+                Button(action: {
+                    if value > -2 {
+                        value -= 1
+                    }
+                }) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(value > -2 ? .blue : .gray)
+                }
+                .disabled(value <= -2)
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    ForEach(-2...2, id: \.self) { rating in
+                        Button(action: {
+                            value = Double(rating)
+                        }) {
+                            Circle()
+                                .fill(rating == intValue ? rating.metricColor : Color.gray.opacity(0.3))
+                                .frame(width: 12, height: 12)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                Button(action: {
+                    if value < 2 {
+                        value += 1
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(value < 2 ? .blue : .gray)
+                }
+                .disabled(value >= 2)
             }
-            .tint(intValue.metricColor)
         }
     }
 }
