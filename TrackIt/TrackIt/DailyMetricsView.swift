@@ -379,11 +379,9 @@ struct MetricSlider: View {
             Slider(value: $value, in: -2...2, step: 1) {
                 Text(title)
             } minimumValueLabel: {
-                Text("-2")
-                    .font(.caption)
+                Text("")
             } maximumValueLabel: {
-                Text("+2")
-                    .font(.caption)
+                Text("")
             }
             .tint(intValue.metricColor)
         }
