@@ -1,0 +1,30 @@
+# SwiftLint Configuration
+disabled_rules:
+  - trailing_whitespace
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - strong_iboutlet
+
+included:
+  - TrackIt
+
+excluded:
+  - TrackItTests
+  - TrackItUITests
+  - TrackIt.xcodeproj
+
+analyzer_rules:
+  - explicit_self
+
+line_length: 120
+function_body_length: 60
+type_body_length: 300
+
+identifier_name:
+  min_length: 2
+  max_length: 50
+
+reporter: "xcode"
