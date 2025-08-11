@@ -189,10 +189,23 @@ struct DailyMetricsView: View {
                                 .padding(.horizontal)
                         }
                         
-                        Button("💾 Save Metrics") {
-                            saveMetrics()
+                        HStack {
+                            Button {
+                                resetFormFields()
+                            } label: {
+                                Image(systemName: "arrow.counterclockwise.circle")
+                                    .font(.title2)
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            Button {
+                                saveMetrics()
+                            } label: {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title2)
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
-                        .buttonStyle(.borderedProminent)
                         .padding()
                     }
                 }
