@@ -3,31 +3,11 @@ import SwiftData
 
 struct DailyMetricsView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var metrics: [DailyMetrics]
-    @Query(sort: \MetricCategory.sortOrder) private var categories: [MetricCategory]
-    @StateObject private var notificationManager = NotificationManager.shared
+    @StateObject private var viewModel = DailyMetricsViewModelFactory.createEmpty()
     
-    @State private var categoryMetrics = [String: Double]()
-    @State private var notes = ""
-    @State private var selectedDate = Date()
-    @State private var isEditingMode = false
-    
-    private var activeCategories: [MetricCategory] {
-        categories.filter(\ .isActive)
-    }
     
     private var selectedDateMetrics: DailyMetrics? {
-        metrics.first { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
-    }
-    
-    private var isSelectedDateToday: Bool {
-        Calendar.current.isDate(selectedDate, inSameDayAs: Date())
-    }
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
+        viewModel.getMetricsForDate(viewModel.selectedDate)
     }
     
     var body: some View {
@@ -37,20 +17,19 @@ struct DailyMetricsView: View {
                     HStack {
                         DateNavigationButton(
                             direction: .previous,
-                            action: { navigateDate(by: -1) }
+                            action: { viewModel.navigateDate(by: -1) }
                         )
                         
                         Spacer()
                         
                         VStack {
-                            Text(dateFormatter.string(from: selectedDate))
+                            Text(viewModel.dateFormatter.string(from: viewModel.selectedDate))
                                 .font(.headline)
                                 .fontWeight(.semibold)
                             
-                            if !isSelectedDateToday {
+                            if !viewModel.isSelectedDateToday {
                                 Button("Today") {
-                                    selectedDate = Date()
-                                    exitEditModeIfNeeded()
+                                    viewModel.navigateToToday()
                                 }
                                 .font(.caption)
                                 .foregroundColor(.blue)
@@ -61,8 +40,8 @@ struct DailyMetricsView: View {
                         
                         DateNavigationButton(
                             direction: .next,
-                            action: { navigateDate(by: 1) },
-                            isDisabled: isSelectedDateToday
+                            action: { viewModel.navigateDate(by: 1) },
+                            isDisabled: viewModel.isSelectedDateToday
                         )
                     }
                     .padding()
@@ -72,20 +51,17 @@ struct DailyMetricsView: View {
                     ScrollView {
                         VStack(spacing: 20) {
                             if let selectedMetrics = selectedDateMetrics {
-                                if isEditingMode {
+                                if viewModel.isEditingMode {
                                     VStack(spacing: 20) {
                                 Text("✏️ Edit Metrics")
                                 .font(.title)
                                 .padding()
                             
                             VStack(spacing: 30) {
-                                ForEach(activeCategories, id: \.name) { category in
+                                ForEach(viewModel.activeCategories, id: \.name) { category in
                                     MetricStepper(
                                         title: category.displayTitle,
-                                        value: Binding(
-                                            get: { categoryMetrics[category.name] ?? 0.0 },
-                                            set: { categoryMetrics[category.name] = $0 }
-                                        )
+                                        value: viewModel.categoryMetricBinding(for: category.name)
                                     )
                                 }
                             }
@@ -96,7 +72,7 @@ struct DailyMetricsView: View {
                                     .font(.headline)
                                     .padding(.horizontal)
                                 
-                                TextField("How was your day? ✨", text: $notes, axis: .vertical)
+                                TextField("How was your day? ✨", text: viewModel.notesBinding(), axis: .vertical)
                                     .textFieldStyle(.roundedBorder)
                                     .lineLimit(3, reservesSpace: true)
                                     .padding(.horizontal)
@@ -104,14 +80,17 @@ struct DailyMetricsView: View {
                             
                             HStack {
                                 Button("❌ Cancel") {
-                                    isEditingMode = false
-                                    resetFormFields()
+                                    viewModel.cancelEditMode()
                                 }
                                 .buttonStyle(.bordered)
                                 
                                 Button("✅ Save Changes") {
-                                    updateMetrics(selectedMetrics)
-                                    isEditingMode = false
+                                    do {
+                                        try viewModel.updateMetrics(selectedMetrics)
+                                        viewModel.isEditingMode = false
+                                    } catch {
+                                        print("Failed to update metrics: \(error)")
+                                    }
                                 }
                                 .buttonStyle(.borderedProminent)
                             }
@@ -120,20 +99,20 @@ struct DailyMetricsView: View {
                     } else {
                         VStack(spacing: 20) {
                             HStack {
-                                Text(isSelectedDateToday ? "✨ Today's Metrics" : "📊 Metrics")
+                                Text(viewModel.isSelectedDateToday ? "✨ Today's Metrics" : "📊 Metrics")
                                     .font(.title)
                                 
                                 Spacer()
                                 
                                 Button("✏️ Edit") {
-                                    enterEditMode(for: selectedMetrics)
+                                    viewModel.enterEditMode(for: selectedMetrics)
                                 }
                                 .buttonStyle(.bordered)
                             }
                             .padding(.horizontal)
                             
                             VStack(spacing: 15) {
-                                ForEach(activeCategories, id: \.name) { category in
+                                ForEach(viewModel.activeCategories, id: \.name) { category in
                                     MetricDisplay(
                                         title: category.displayTitle,
                                         value: selectedMetrics.getMetric(for: category.name)
@@ -160,19 +139,16 @@ struct DailyMetricsView: View {
                 } else {
                     VStack {
                         VStack {
-                            Text(isSelectedDateToday ? "✨ Daily Metrics" : "📅 Add Metrics")
+                            Text(viewModel.isSelectedDateToday ? "✨ Daily Metrics" : "📅 Add Metrics")
                                 .font(.title)
                                 .padding()
                         }
                         
                         VStack(spacing: 30) {
-                            ForEach(activeCategories, id: \.name) { category in
+                            ForEach(viewModel.activeCategories, id: \.name) { category in
                                 MetricStepper(
                                     title: category.displayTitle,
-                                    value: Binding(
-                                        get: { categoryMetrics[category.name] ?? 0.0 },
-                                        set: { categoryMetrics[category.name] = $0 }
-                                    )
+                                    value: viewModel.categoryMetricBinding(for: category.name)
                                 )
                             }
                         }
@@ -184,8 +160,8 @@ struct DailyMetricsView: View {
                                 .padding(.horizontal)
                             
                             TextField(
-                                isSelectedDateToday ? "How was your day? ✨" : "How was this day? ✨",
-                                text: $notes,
+                                viewModel.isSelectedDateToday ? "How was your day? ✨" : "How was this day? ✨",
+                                text: viewModel.notesBinding(),
                                 axis: .vertical
                             )
                                 .textFieldStyle(.roundedBorder)
@@ -195,7 +171,7 @@ struct DailyMetricsView: View {
                         
                         HStack {
                             Button {
-                                resetFormFields()
+                                viewModel.resetFormFields()
                             } label: {
                                 Image(systemName: "arrow.counterclockwise.circle")
                                     .font(.title2)
@@ -203,7 +179,11 @@ struct DailyMetricsView: View {
                             .buttonStyle(.bordered)
                             
                             Button {
-                                saveMetrics()
+                                do {
+                                    try viewModel.saveMetrics()
+                                } catch {
+                                    print("Failed to save metrics: \(error)")
+                                }
                             } label: {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.title2)
@@ -244,89 +224,13 @@ struct DailyMetricsView: View {
                 }
             }
             .onAppear {
-                initializeNotifications()
-                ensureDefaultCategories()
+                viewModel.updateModelContext(modelContext)
+                viewModel.initializeNotifications()
+                viewModel.ensureDefaultCategories()
             }
         }
     }
 }
-
-// MARK: - Private Methods
-private extension DailyMetricsView {
-    func saveMetrics() {
-        let newMetrics = DailyMetrics(date: selectedDate, notes: notes)
-        modelContext.insert(newMetrics)
-        
-        // Set values for each category
-        for category in activeCategories {
-            let value = Int(categoryMetrics[category.name] ?? 0.0)
-            newMetrics.setMetric(value, for: category.name)
-        }
-        
-        do {
-            try modelContext.save()
-            resetFormFields()
-        } catch {
-            print("Failed to save metrics: \(error)")
-        }
-    }
-    
-    func enterEditMode(for metrics: DailyMetrics) {
-        categoryMetrics.removeAll()
-        for category in activeCategories {
-            categoryMetrics[category.name] = Double(metrics.getMetric(for: category.name))
-        }
-        notes = metrics.notes
-        isEditingMode = true
-    }
-    
-    func updateMetrics(_ metrics: DailyMetrics) {
-        // Update values for each category
-        for category in activeCategories {
-            let value = Int(categoryMetrics[category.name] ?? 0.0)
-            metrics.setMetric(value, for: category.name)
-        }
-        metrics.notes = notes
-        
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to update metrics: \(error)")
-        }
-    }
-    
-    func resetFormFields() {
-        categoryMetrics.removeAll()
-        notes = ""
-    }
-    
-    func exitEditModeIfNeeded() {
-        guard isEditingMode else { return }
-        isEditingMode = false
-        resetFormFields()
-    }
-    
-    func initializeNotifications() {
-        let settings = AppSettings.getOrCreate(context: modelContext)
-        guard settings.notificationsEnabled else { return }
-        notificationManager.scheduleDailyNotification(
-            at: settings.notificationTime,
-            enabled: settings.notificationsEnabled
-        )
-    }
-    
-    func navigateDate(by days: Int) {
-        selectedDate = Calendar.current.date(byAdding: .day, value: days, to: selectedDate) ?? selectedDate
-        exitEditModeIfNeeded()
-    }
-    
-    func ensureDefaultCategories() {
-        guard categories.isEmpty else { return }
-        MetricCategory.insertDefaultCategories(into: modelContext)
-    }
-}
-
-// MARK: - Metric Helpers
 
 #Preview {
     DailyMetricsView()

@@ -3,58 +3,54 @@ import SwiftData
 
 struct StatisticsView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var metrics: [DailyMetrics]
-    @Query(sort: \MetricCategory.sortOrder) private var categories: [MetricCategory]
-    
-    private var activeCategories: [MetricCategory] {
-        categories.filter(\.isActive)
-    }
+    @StateObject private var viewModel = StatisticsViewModelFactory.createEmpty()
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(activeCategories, id: \.name) { category in
-                        StatisticCard(
-                            category: category,
-                            totalAverage: calculateTotalAverage(for: category.name),
-                            tenDayAverage: calculateRunningAverage(for: category.name, days: 10),
-                            thirtyDayAverage: calculateRunningAverage(for: category.name, days: 30)
-                        )
+                if viewModel.isLoading {
+                    ProgressView("Loading statistics...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let errorMessage = viewModel.errorMessage {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.orange)
+                        Text("Error Loading Statistics")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Button("Retry") {
+                            viewModel.refreshStatistics()
+                        }
+                        .buttonStyle(.bordered)
                     }
+                    .padding()
+                } else {
+                    VStack(spacing: 20) {
+                        ForEach(viewModel.statisticsData) { statistics in
+                            StatisticCard(
+                                category: statistics.category,
+                                totalAverage: statistics.totalAverage,
+                                tenDayAverage: statistics.tenDayAverage,
+                                thirtyDayAverage: statistics.thirtyDayAverage
+                            )
+                        }
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("📊 Statistics")
             .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                viewModel.refreshStatistics()
+            }
+            .onAppear {
+                viewModel.updateModelContext(modelContext)
+                viewModel.loadStatistics()
+            }
         }
-    }
-}
-
-// MARK: - Statistics Calculations
-private extension StatisticsView {
-    func calculateTotalAverage(for categoryName: String) -> Double {
-        let categoryMetrics = metrics.map { $0.getMetric(for: categoryName) }
-        guard !categoryMetrics.isEmpty else { return 0.0 }
-        
-        let sum = categoryMetrics.reduce(0, +)
-        return Double(sum) / Double(categoryMetrics.count)
-    }
-    
-    func calculateRunningAverage(for categoryName: String, days: Int) -> Double {
-        let calendar = Calendar.current
-        let endDate = Date()
-        let startDate = calendar.date(byAdding: .day, value: -days, to: endDate) ?? endDate
-        
-        let recentMetrics = metrics.filter { metric in
-            metric.date >= startDate && metric.date <= endDate
-        }
-        
-        guard !recentMetrics.isEmpty else { return 0.0 }
-        
-        let categoryValues = recentMetrics.map { $0.getMetric(for: categoryName) }
-        let sum = categoryValues.reduce(0, +)
-        return Double(sum) / Double(categoryValues.count)
     }
 }
 
