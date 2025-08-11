@@ -48,11 +48,20 @@ final class AppSettings {
     
     static func getOrCreate(context: ModelContext) -> AppSettings {
         let descriptor = FetchDescriptor<AppSettings>()
-        if let existing = try? context.fetch(descriptor).first {
-            return existing
-        } else {
+        do {
+            if let existing = try context.fetch(descriptor).first {
+                return existing
+            } else {
+                let newSettings = AppSettings()
+                context.insert(newSettings)
+                try? context.save()
+                return newSettings
+            }
+        } catch {
+            print("Failed to fetch AppSettings, creating new ones: \(error)")
             let newSettings = AppSettings()
             context.insert(newSettings)
+            try? context.save()
             return newSettings
         }
     }

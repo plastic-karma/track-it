@@ -51,8 +51,12 @@ class SettingsViewModel: ObservableObject {
     }
     
     // MARK: - Settings Management
-    func saveSettings() throws {
-        try modelContext.save()
+    func saveSettings() {
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save settings: \(error)")
+        }
     }
     
     // MARK: - Notification Management
@@ -63,7 +67,7 @@ class SettingsViewModel: ObservableObject {
                 await MainActor.run {
                     if granted {
                         settings?.notificationsEnabled = true
-                        try? saveSettings()
+                        saveSettings()
                         updateNotificationSchedule()
                     } else {
                         showingPermissionAlert = true
@@ -72,7 +76,7 @@ class SettingsViewModel: ObservableObject {
             }
         } else {
             settings?.notificationsEnabled = enabled
-            try? saveSettings()
+            saveSettings()
             updateNotificationSchedule()
         }
     }
@@ -92,7 +96,7 @@ class SettingsViewModel: ObservableObject {
                 await MainActor.run {
                     if granted {
                         settings?.weeklyStatsReminderEnabled = true
-                        try? saveSettings()
+                        saveSettings()
                         updateWeeklyStatsSchedule()
                     } else {
                         showingPermissionAlert = true
@@ -101,7 +105,7 @@ class SettingsViewModel: ObservableObject {
             }
         } else {
             settings?.weeklyStatsReminderEnabled = enabled
-            try? saveSettings()
+            saveSettings()
             updateWeeklyStatsSchedule()
         }
     }
@@ -122,7 +126,7 @@ class SettingsViewModel: ObservableObject {
         loadCategories()
     }
     
-    func addCategory(name: String, emoji: String) throws {
+    func addCategory(name: String, emoji: String) {
         let maxOrder = categories.map(\.sortOrder).max() ?? -1
         let newCategory = MetricCategory(
             name: name,
@@ -130,34 +134,34 @@ class SettingsViewModel: ObservableObject {
             sortOrder: maxOrder + 1
         )
         modelContext.insert(newCategory)
-        try saveSettings()
+        saveSettings()
         loadCategories()
     }
     
-    func updateCategory(_ category: MetricCategory, name: String, emoji: String) throws {
+    func updateCategory(_ category: MetricCategory, name: String, emoji: String) {
         category.name = name
         category.emoji = emoji
-        try saveSettings()
+        saveSettings()
         loadCategories()
     }
     
-    func deleteCategories(at offsets: IndexSet) throws {
+    func deleteCategories(at offsets: IndexSet) {
         for index in offsets {
             let category = activeCategories[index]
             category.isActive = false
         }
-        try saveSettings()
+        saveSettings()
         loadCategories()
     }
     
-    func moveCategories(from source: IndexSet, to destination: Int) throws {
+    func moveCategories(from source: IndexSet, to destination: Int) {
         var activeCategoriesCopy = activeCategories
         activeCategoriesCopy.move(fromOffsets: source, toOffset: destination)
         
         for (index, category) in activeCategoriesCopy.enumerated() {
             category.sortOrder = index
         }
-        try saveSettings()
+        saveSettings()
         loadCategories()
     }
     
@@ -173,7 +177,7 @@ class SettingsViewModel: ObservableObject {
     func dismissPermissionAlert() {
         showingPermissionAlert = false
         settings?.notificationsEnabled = false
-        try? saveSettings()
+        saveSettings()
     }
     
     func openSystemSettings() {
@@ -195,7 +199,7 @@ class SettingsViewModel: ObservableObject {
             get: { self.settings?.notificationTime ?? Date() },
             set: { newTime in
                 self.settings?.notificationTime = newTime
-                try? self.saveSettings()
+                self.saveSettings()
                 self.updateNotificationSchedule()
             }
         )
@@ -213,7 +217,7 @@ class SettingsViewModel: ObservableObject {
             get: { self.settings?.weeklyStatsReminderDay ?? 1 },
             set: { newDay in
                 self.settings?.weeklyStatsReminderDay = newDay
-                try? self.saveSettings()
+                self.saveSettings()
                 self.updateWeeklyStatsSchedule()
             }
         )
@@ -224,7 +228,7 @@ class SettingsViewModel: ObservableObject {
             get: { self.settings?.weeklyStatsReminderTime ?? Date() },
             set: { newTime in
                 self.settings?.weeklyStatsReminderTime = newTime
-                try? self.saveSettings()
+                self.saveSettings()
                 self.updateWeeklyStatsSchedule()
             }
         )

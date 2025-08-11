@@ -77,18 +77,10 @@ struct SettingsView: View {
                         }
                     }
                     .onDelete { offsets in
-                        do {
-                            try viewModel.deleteCategories(at: offsets)
-                        } catch {
-                            print("Failed to delete categories: \(error)")
-                        }
+                        viewModel.deleteCategories(at: offsets)
                     }
                     .onMove { source, destination in
-                        do {
-                            try viewModel.moveCategories(from: source, to: destination)
-                        } catch {
-                            print("Failed to move categories: \(error)")
-                        }
+                        viewModel.moveCategories(from: source, to: destination)
                     }
                     
                     Button {
@@ -129,20 +121,12 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $viewModel.showingAddCategory) {
                 CategoryEditView(category: nil, onSave: { name, emoji in
-                    do {
-                        try viewModel.addCategory(name: name, emoji: emoji)
-                    } catch {
-                        print("Failed to add category: \(error)")
-                    }
+                    viewModel.addCategory(name: name, emoji: emoji)
                 })
             }
             .sheet(item: $viewModel.editingCategory) { category in
                 CategoryEditView(category: category, onSave: { name, emoji in
-                    do {
-                        try viewModel.updateCategory(category, name: name, emoji: emoji)
-                    } catch {
-                        print("Failed to update category: \(error)")
-                    }
+                    viewModel.updateCategory(category, name: name, emoji: emoji)
                 })
             }
         }

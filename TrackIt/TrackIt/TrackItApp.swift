@@ -20,7 +20,8 @@ struct TrackItApp: App {
             MetricCategory.self,
             CategoryMetric.self
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let url = URL.applicationSupportDirectory.appending(path: "database.sqlite")
+        let modelConfiguration = ModelConfiguration(schema: schema, url: url)
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])

@@ -212,7 +212,7 @@ class DailyMetricsViewModelFactory {
         // This will be replaced with the real context in onAppear
         do {
             let schema = Schema([DailyMetrics.self, MetricCategory.self, CategoryMetric.self])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             let container = try ModelContainer(for: schema, configurations: [config])
             let context = ModelContext(container)
             return DailyMetricsViewModel(modelContext: context)
