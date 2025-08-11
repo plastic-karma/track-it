@@ -379,14 +379,8 @@ struct MetricStepper: View {
                 Text(title)
                     .font(.headline)
                 Spacer()
-                HStack(spacing: 4) {
-                    Text(intValue.metricEmoji)
-                        .font(.title3)
-                    Text("\(intValue)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(intValue.metricColor)
-                }
+                Text(intValue.metricEmoji)
+                    .font(.title2)
             }
             
             HStack {
