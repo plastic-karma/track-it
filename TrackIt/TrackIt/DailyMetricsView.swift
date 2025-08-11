@@ -96,7 +96,7 @@ struct DailyMetricsView: View {
                                     .font(.headline)
                                     .padding(.horizontal)
                                 
-                                TextField("How did you perform today? ✨", text: $notes, axis: .vertical)
+                                TextField("How was your day? ✨", text: $notes, axis: .vertical)
                                     .textFieldStyle(.roundedBorder)
                                     .lineLimit(3, reservesSpace: true)
                                     .padding(.horizontal)
@@ -183,7 +183,7 @@ struct DailyMetricsView: View {
                                 .font(.headline)
                                 .padding(.horizontal)
                             
-                            TextField(isSelectedDateToday ? "How did you perform today? ✨" : "How did you perform on this date? ✨", text: $notes, axis: .vertical)
+                            TextField(isSelectedDateToday ? "How was your day? ✨" : "How was this day? ✨", text: $notes, axis: .vertical)
                                 .textFieldStyle(.roundedBorder)
                                 .lineLimit(3, reservesSpace: true)
                                 .padding(.horizontal)
