@@ -43,15 +43,17 @@ struct CategoryEditView: View {
                 if showingEmojiPicker {
                     Section(header: Text("Select Emoji")) {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 10) {
-                            ForEach(Array(Self.commonEmojis.enumerated()), id: \.offset) { index, emojiOption in
-                                Button(action: {
+                            ForEach(Array(Self.commonEmojis.enumerated()), id: \.offset) { _, emojiOption in
+                                Button {
                                     emoji = emojiOption
                                     showingEmojiPicker = false
-                                }) {
+                                } label: {
                                     Text(emojiOption)
                                         .font(.title2)
                                         .padding(8)
-                                        .background(emoji == emojiOption ? Color.blue.opacity(0.3) : Color(.systemGray6))
+                                        .background(
+                                            emoji == emojiOption ? Color.blue.opacity(0.3) : Color(.systemGray6)
+                                        )
                                         .cornerRadius(8)
                                 }
                             }

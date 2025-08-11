@@ -37,7 +37,7 @@ struct ContentView: View {
     
     private func checkForNotificationResponse() {
         // Check if app was opened from a notification
-        UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
+        UNUserNotificationCenter.current().getDeliveredNotifications { _ in
             // This approach works for when the app is in background/foreground
             // For a more robust solution, we'd need to implement UNUserNotificationCenterDelegate
         }
@@ -53,7 +53,11 @@ class NotificationDelegate: NSObject, ObservableObject {
 
 // MARK: - UNUserNotificationCenterDelegate
 extension NotificationDelegate: UNUserNotificationCenterDelegate {
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
         
         let userInfo = response.notification.request.content.userInfo
         
@@ -66,7 +70,11 @@ extension NotificationDelegate: UNUserNotificationCenterDelegate {
         completionHandler()
     }
     
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
         completionHandler([.banner, .sound, .badge])
     }
 }

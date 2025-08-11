@@ -5,38 +5,45 @@ import SwiftData
 final class AppSettings {
     var notificationsEnabled: Bool
     var notificationTime: Date
-    var _weeklyStatsReminderEnabled: Bool?
-    var _weeklyStatsReminderDay: Int? // 1 = Sunday, 2 = Monday, etc.
-    var _weeklyStatsReminderTime: Date?
+    private var weeklyStatsReminderEnabledStorage: Bool?
+    private var weeklyStatsReminderDayStorage: Int? // 1 = Sunday, 2 = Monday, etc.
+    private var weeklyStatsReminderTimeStorage: Date?
     
     // Computed properties with default values for backward compatibility
     var weeklyStatsReminderEnabled: Bool {
-        get { _weeklyStatsReminderEnabled ?? false }
-        set { _weeklyStatsReminderEnabled = newValue }
+        get { weeklyStatsReminderEnabledStorage ?? false }
+        set { weeklyStatsReminderEnabledStorage = newValue }
     }
     
     var weeklyStatsReminderDay: Int {
-        get { _weeklyStatsReminderDay ?? 1 } // Default to Sunday
-        set { _weeklyStatsReminderDay = newValue }
+        get { weeklyStatsReminderDayStorage ?? 1 } // Default to Sunday
+        set { weeklyStatsReminderDayStorage = newValue }
     }
     
     var weeklyStatsReminderTime: Date {
-        get { _weeklyStatsReminderTime ?? (Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date()) ?? Date()) }
-        set { _weeklyStatsReminderTime = newValue }
+        get {
+            weeklyStatsReminderTimeStorage ??
+            (Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date()) ?? Date())
+        }
+        set { weeklyStatsReminderTimeStorage = newValue }
     }
     
     init(
-        notificationsEnabled: Bool = false, 
-        notificationTime: Date = Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date(),
+        notificationsEnabled: Bool = false,
+        notificationTime: Date = Calendar.current.date(
+            bySettingHour: 20, minute: 0, second: 0, of: Date()
+        ) ?? Date(),
         weeklyStatsReminderEnabled: Bool = false,
         weeklyStatsReminderDay: Int = 1,
-        weeklyStatsReminderTime: Date = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date()) ?? Date()
+        weeklyStatsReminderTime: Date = Calendar.current.date(
+            bySettingHour: 10, minute: 0, second: 0, of: Date()
+        ) ?? Date()
     ) {
         self.notificationsEnabled = notificationsEnabled
         self.notificationTime = notificationTime
-        self._weeklyStatsReminderEnabled = weeklyStatsReminderEnabled
-        self._weeklyStatsReminderDay = weeklyStatsReminderDay
-        self._weeklyStatsReminderTime = weeklyStatsReminderTime
+        self.weeklyStatsReminderEnabledStorage = weeklyStatsReminderEnabled
+        self.weeklyStatsReminderDayStorage = weeklyStatsReminderDay
+        self.weeklyStatsReminderTimeStorage = weeklyStatsReminderTime
     }
     
     static func getOrCreate(context: ModelContext) -> AppSettings {

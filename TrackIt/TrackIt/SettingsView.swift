@@ -281,5 +281,8 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
-        .modelContainer(for: [AppSettings.self, DailyMetrics.self, MetricCategory.self, CategoryMetric.self], inMemory: true)
+        .modelContainer(
+            for: [AppSettings.self, DailyMetrics.self, MetricCategory.self, CategoryMetric.self],
+            inMemory: true
+        )
 }

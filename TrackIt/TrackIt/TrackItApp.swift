@@ -18,7 +18,7 @@ struct TrackItApp: App {
             DailyMetrics.self,
             AppSettings.self,
             MetricCategory.self,
-            CategoryMetric.self,
+            CategoryMetric.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
